@@ -1,0 +1,168 @@
+<!doctype html>
+<meta charset=utf-8>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="nofollow">
+<title>Dice Playground</title>
+<style>
+:root { color-scheme: light dark; }
+
+html { height: 100%; }
+
+body {
+	display:  flex;
+	flex-flow:  column;
+	height:  100%;
+	box-sizing: border-box;
+	margin:  0;
+	padding:  .5em;
+}
+body > * {
+	flex: 1;
+}
+body > button {
+	flex: 0;
+	padding: .5em;
+}
+@media (min-width: 60em) {
+	body {
+		flex-flow: row;
+	}
+}
+
+#output {
+	white-space: pre-wrap;
+	padding: .5em;
+	font-family: sans-serif;
+}
+#output table {
+	border-collapse:  collapse;
+	border:  thin solid;
+}
+#output td {
+	border: thin solid;
+	padding:  .25em;
+}
+</style>
+<textarea id=input></textarea>
+<button id=run>↵</button>
+<div id=output></div>
+<script type=module>
+import * as R from "./Roll.js";
+import * as DOM from "./DOM.js";
+
+const Roll = R.Roll;
+window.R = R;
+window.DOM = DOM;
+window.Roll = Roll;
+
+function log(x) {
+	console.log(x);
+	let node;
+	if(x instanceof Node) {
+		node = x;
+	} else if(x instanceof Roll) {
+		console.log(x.text());
+		node = x.table();
+	} else {
+		node = new Text(x+"\n");
+	}
+	document.querySelector("#output").appendChild(node);
+}
+
+function run(code) {
+	document.querySelector("#output").innerHTML = "";
+	const result = eval(code);
+	if(result !== undefined) log(result);
+}
+document.querySelector("#run").addEventListener('click', _=>{
+	const input = document.querySelector("#input").value;
+	run(input);
+	document.location.hash = encodeURIComponent(input);
+});
+
+
+function runHash() {
+	const code = decodeURIComponent(document.location.hash.slice(1));
+	document.querySelector("#input").value = code;
+	run(code);
+}
+
+if(document.location.hash) runHash();
+window.addEventListener('hashchange', runHash);
+</script>
+
+<details id=what>
+	<summary>❓</summary>
+
+	<p>This is a small playground for my <a href="/js/Dice.js">Dice.js</a> library,
+		which is designed to compute <em>exact</em> results
+		for dice rolls of arbitrary complexity
+		(rather than simulating several thousand rolls
+		for an approximate answer).
+
+	<p>Several things are visible to code written in the input pane:
+
+	<ul>
+		<li>The <a href="/js/Dice.js">Dice.js</a> library itself,
+			as the global <code>R</code>.
+		<li>The Roll class from Dice.js,
+			as the global <code>Roll</code>.
+		<li>The <a href="/js/DOM.js">DOM.js</a> library,
+			as the global <code>DOM</code>
+			(to let you easily create other elements).
+		<li>A <code>log()</code> function,
+			while will <code>console.log()</code> the value,
+			and add it to the output pane.
+			Nodes and text are appended directy;
+			Roll objects log their <code>.text()</code> results to the console
+			and put their <code>.table()</code> results in the output pane.
+	</ul>
+
+	<p>The code won't run until you press the <button>↵</button> button,
+		at which point the page's hash will also update to contain the code,
+		so you can easily share links.
+
+	<p>Some example rolls:
+
+	<ul id=examples>
+		<li><a href="/dice/#Roll.d20.advantage().table(%7Baverage%3Atrue%7D)%3B">d20 with advantage</a>
+		<li><a href="/dice/#Roll.nd(3%2C6).bucketBySum().table(%7Baverage%3Atrue%7D)">sum of 3d6</a>
+		<li><a href="/dice/#Roll.nd(2%2C6).reroll(%7B%0A%20map(faces)%20%7B%20return%20%7Bdone%3A%20R.flat(faces.map(face%3D%3Eface%3C%3D2%20%3F%20Roll.d6%20%3A%20face))%7D%3B%20%7D%0A%7D).bucketBySum().table(%7Baverage%3Atrue%7D)">Greatsword damage, with Great Weapon Master (2d6, reroll 1s and 2s a single time)</a>
+		<li><a href="/dice/#Roll.d6.reroll(%7B%0A%20map(x)%20%7B%20return%20x%3D%3D6%20%3F%20Roll.d6%20%3A%20x%20%7D%0A%7D)">A d5, simulated by rerolling a d6 whenever it comes up 6</a>
+		<li><a href='/dice/#log(DOM.mk.h1(%7B%7D%2C"D%26D%20Death%20Saves"))%3B%0A%0Alog(Roll.d20.reroll(%7B%0A%09summarize(roll%2C%20oldSummary%3D%7B%7D)%20%7B%0A%09%09return%20%7B%0A%09%09%09successes%3A(roll>%3D10%3F1%3A0)%20%2B%20(oldSummary.successes%20%7C%7C%200)%2C%0A%09%09%09failures%3A(roll<10%3F1%3A0)%20%2B%20(roll%3D%3D1%3F1%3A0)%20%2B%20(oldSummary.failures%20%7C%7C%200)%2C%0A%09%09%09nat20%3A%20(roll%3D%3D20)%2C%0A%09%09%09toString()%20%7B%20return%20%60%24%7Bthis.successes%7D%2F%24%7Bthis.failures%7D%2F%24%7Bthis.nat20%7D%60%3B%20%7D%2C%0A%09%09%7D%0A%09%7D%2C%0A%09map(summary)%20%7B%0A%09%09if(summary.nat20)%20return%20"revive"%3B%0A%09%09if(summary.successes%20>%3D%203)%20return%20"stabilize"%3B%0A%09%09if(summary.failures%20>%3D%203)%20return%20"die"%3B%0A%09%09return%20Roll.d20%3B%0A%09%7D%0A%7D))'>D&D 5e death save outcomes</a>
+</details>
+<style>
+#what {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+#what:not([open]) {
+	opacity: .5;
+	transition: opacity .3s;
+}
+#what:hover {
+	opacity: 1;
+}
+#what[open] {
+	left: 0;
+	bottom: 0;
+	padding: 1em;
+	background: canvas;
+}
+#what summary {
+	text-align: center;
+}
+
+#what > * {
+	max-width: 50em;
+	margin-inline: auto;
+}
+</style>
+<script>
+[...document.querySelectorAll("#what #examples a")].forEach(el=> {
+	el.addEventListener('click', _=>{
+		document.querySelector("#what").removeAttribute("open");
+	})
+});
+</script>
