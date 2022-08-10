@@ -209,46 +209,6 @@ export class Roll {
 		return Roll.fromPairs(finishedPairs);
 	}
 
-	average(fn=sumFaces) {
-		// Assuming the values are numbers or arrays of numbers,
-		// returns the average value of the Roll.
-		// Can pass a fn to convert the values into a number.
-		return this.results.map(([val, chance])=>{
-			return fn(val)*chance;
-		}).reduce((a,b)=>a+b, 0);
-	}
-
-	table({fn=String, average=false}={}) {
-		// Converts the Roll into a <table> element,
-		// with two columns: the value (mapped thru fn),
-		// and the chance.
-		// If average is truthy, adds a final row with the
-		// results of .average().
-		return mk.table({},
-			mk.tbody({},
-				...this.results.map(([val, chance])=>
-					mk.tr({},
-						mk.td({}, fn(val)),
-						mk.td({}, (chance*100).toFixed(2)+"%"),
-					),
-				),
-				...(!average?[]: [mk.tr({}, mk.td({}, "Average"), mk.td({}, this.average().toFixed(2)))]),
-			),
-		);
-	}
-
-	text({sep="", fn=String, average=false}={}) {
-		// Similar to .table() but instead returns raw text,
-		// for easy viewing in text contexts like the console.
-		const ret = this.results.map(([val, chance])=>{
-			return `<${fn(val)} / ${(chance*100).toFixed(2)}%>`
-		});
-		if(average) {
-			ret.push(`<Average / ${this.average().toFixed(2)}>`);
-		}
-		return ret.join(sep);
-	}
-
 	advantage(n=2, key=sumFaces) {
 		// Returns a new Roll that's the original roll,
 		// done n times,
@@ -259,6 +219,7 @@ export class Roll {
 			return faces[faces.length-1];
 		}).bucket();
 	}
+
 	disadvantage(n=2, key=sumFaces) {
 		// Same as .advantage() except the lowest is kept.
 		return flat(Array.from({length:n}, x=>this)).map(faces=>{
@@ -266,6 +227,7 @@ export class Roll {
 			return faces[0];
 		}).bucket();
 	}
+
 	explode({threshold, pred, sum=sumFaces, times=Infinity}={}) {
 		// Creates an "exploding" die -
 		// whenever an "exploding" face is rolled,
@@ -309,6 +271,46 @@ export class Roll {
 				return val.sum;
 			},
 		});
+	}
+
+	average(fn=sumFaces) {
+		// Assuming the values are numbers or arrays of numbers,
+		// returns the average value of the Roll.
+		// Can pass a fn to convert the values into a number.
+		return this.results.map(([val, chance])=>{
+			return fn(val)*chance;
+		}).reduce((a,b)=>a+b, 0);
+	}
+
+	table({fn=String, average=false}={}) {
+		// Converts the Roll into a <table> element,
+		// with two columns: the value (mapped thru fn),
+		// and the chance.
+		// If average is truthy, adds a final row with the
+		// results of .average().
+		return mk.table({},
+			mk.tbody({},
+				...this.results.map(([val, chance])=>
+					mk.tr({},
+						mk.td({}, fn(val)),
+						mk.td({}, (chance*100).toFixed(2)+"%"),
+					),
+				),
+				...(!average?[]: [mk.tr({}, mk.td({}, "Average"), mk.td({}, this.average().toFixed(2)))]),
+			),
+		);
+	}
+
+	text({sep="", fn=String, average=false}={}) {
+		// Similar to .table() but instead returns raw text,
+		// for easy viewing in text contexts like the console.
+		const ret = this.results.map(([val, chance])=>{
+			return `<${fn(val)} / ${(chance*100).toFixed(2)}%>`
+		});
+		if(average) {
+			ret.push(`<Average / ${this.average().toFixed(2)}>`);
+		}
+		return ret.join(sep);
 	}
 }
 

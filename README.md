@@ -390,6 +390,12 @@ there are several methods for altering the result.
 Once you've gotten a `Roll`,
 you probably want to know its results.
 
+* `r.roll()`
+
+	Rolls the dice!
+	Returns one of the possible values,
+	weighted appropriately based on the chances.
+
 * `r.average(function fn=sumFaces)`
 
 	Returns the average value of the roll,
