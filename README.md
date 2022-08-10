@@ -132,6 +132,43 @@ there are several methods for altering the result.
 	with 1 now having a 1/400 chance
 	and 20 having a 39/400 chance.
 
+* `r.explode({(int or function)? threshold, function? pred, function sum=sumFaces, int times=Infinity})`
+
+	Creates an "exploding" die,
+	rerolling the die when it satisfies some condition
+	and adding the reroll to the original value.
+
+	By default, rerolls based on max value;
+	`Roll.nd(2, 6)` will reroll a `[6,6]` result,
+	with the reroll results adding to the 12 sum.
+	This is distinct from `flat([Roll.d6.explode(), Roll.d6.explode()])`,
+	which is a pair of exploding d6s
+	which each *individually* explode when they roll a 6.
+
+	The optional `threshold` argument can be a number,
+	in which case it rerolls whenever the roll is >= the threshold;
+	or it can be a function,
+	which is passed a list of the Roll values
+	and must return a threshold number
+	(this is how the default works, by calculating the maximum sum value).
+	If omitted, the threshold is the maximum value of the Roll.
+
+	The optional `pred` argument must be a boolean function,
+	returning true when the roll should explode.
+	It's passed both the summed value
+	and the original value,
+	in case your explosion logic is complicated and based on exact face results.
+	If omitted, the predicate just checks if the value is the maximum possible for the Roll.
+
+	The `sum` function is called on each value
+	before passing it to the `pred` function,
+	and is expected to return a number.
+	It defaults to `sumFaces()`.
+
+	Finally, you can control how many times a die is allowed to explode.
+	By default, this will use the normal logic for `.reroll()`,
+	stopping the explosions when the pending rerolls are less than .01% in total.
+
 * `r.map(function cb)`
 
 	Returns a new `Roll`

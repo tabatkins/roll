@@ -266,6 +266,50 @@ export class Roll {
 			return faces[0];
 		}).bucket();
 	}
+	explode({threshold, pred, sum=sumFaces, times=Infinity}={}) {
+		// Creates an "exploding" die -
+		// whenever an "exploding" face is rolled,
+		// the die is rerolled and the exploded value added to the result.
+		// By default, explodes on the highest value;
+		// can instead pass a threshold value (it'll explode at or above)
+		// a threshold *function* (it'll be given `this` and must return a threshold number)
+		// or a predicate function called with (current roll sum, exact current roll value)
+		// that returns true if the value should explode.
+		// Can pass a key fn to digest the result value into a number;
+		// by default it's sumFaces.
+		// Can optionally give a maximum number of times it can explode;
+		// by default it'll just stop exploding when it gets too rare.
+		if(pred) {
+			// this'll be used
+		} else if(typeof threshold == "number") {
+			pred = x=>x>=threshold;
+		} else if(threshold && typeof threshold == "object") {
+			// assume it's a callable function
+			threshold = threshold(this.results.map(x=>x[0]));
+			pred = x=>x>=threshold;
+		} else {
+			// default to exploding on the maximum value
+			threshold = this.results.reduce((m, r)=>Math.max(m, sum(r[0])), 0);
+			pred = x=>x>=threshold;
+		}
+		const self = this;
+		return this.reroll({
+			summarize(faces, oldSummary={}) {
+				const val = sum(faces);
+				return {
+					val,
+					sum: val+(oldSummary.sum||0),
+					explodes: pred(val, faces),
+					get key(){ return `${this.val}:${this.sum}`; }
+				};
+			},
+			map(val, rollNum) {
+				if(rollNum > times) return val.sum;
+				if(val.explodes) { return self; }
+				return val.sum;
+			},
+		});
+	}
 }
 
 export function sumFaces(val) {
