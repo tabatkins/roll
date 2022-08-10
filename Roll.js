@@ -113,7 +113,9 @@ export class Roll {
 		// Assuming the values are numbers or arrays of numbers,
 		// buckets according to their sum,
 		// returning a new Roll composed of the sums.
-		return this.bucket(sumFaces, x=>sumFaces(x[0]));
+		const ret = this.bucket(sumFaces, x=>sumFaces(x[0]));
+		ret.results.sort((a,b)=>a[0]-b[0]);
+		return ret;
 	}
 
 	reroll({summarize, map, key=defaultRerollKey, join, cleanup, threshold=.0001, rollMax=1000}={}) {
