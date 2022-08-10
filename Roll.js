@@ -109,7 +109,7 @@ export class Roll {
 		return Roll.fromPairs(newResults);
 	}
 
-	bucketBySum() {
+	sum() {
 		// Assuming the values are numbers or arrays of numbers,
 		// buckets according to their sum,
 		// returning a new Roll composed of the sums.
