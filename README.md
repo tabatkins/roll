@@ -208,6 +208,10 @@ there are several methods for altering the result.
 	By default, this will use the normal logic for `.reroll()`,
 	stopping the explosions when the pending rerolls are less than .01% in total.
 
+
+If the convenience methods above aren't enough,
+you can get low-level and manipulate Rolls more directly:
+
 * `r.map(function cb)`
 
 	Returns a new `Roll`
@@ -264,17 +268,6 @@ there are several methods for altering the result.
 	will group the results by their value,
 	resulting in a `Roll` that again has only 6 results (1-6),
 	and the appropriate combined chances for each (1/36 for 1, 7/36 for 2-6).
-
-* `r.sum()`
-
-	A predefined version of `.bucket()` that groups values by their sum,
-	as this is a very common operation.
-
-	For example, while `Roll.nd(3,6)` has 216 results
-	(one for each possible roll of a 3d6),
-	if you only care about the sum of the result,
-	then `Roll.nd(3,6).sum()` simplifies it to just 16 results (3-18),
-	each with the appropriate chance of occurring.
 
 * `r.reroll({function summarize, function map, function key=defaultRerollKey, function join, function cleanup, number threshold=.0001, int rollMax=1000}={})`
 
