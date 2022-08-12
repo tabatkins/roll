@@ -64,8 +64,10 @@ function log(x) {
 	} else if(x instanceof Roll) {
 		console.log(x.text());
 		node = x.table();
+	} else if(Array.isArray(x) || typeof x == "object"){
+		node = new Text(JSON.stringify(x)+"\n");
 	} else {
-		node = new Text(x+"\n");
+		node = new Text(x + "\n");
 	}
 	document.querySelector("#output").appendChild(node);
 }
