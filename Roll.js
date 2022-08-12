@@ -113,9 +113,33 @@ export class Roll {
 		// Assuming the values are numbers or arrays of numbers,
 		// buckets according to their sum,
 		// returning a new Roll composed of the sums.
-		const ret = this.bucket(sumFaces, x=>sumFaces(x[0]));
-		ret.results.sort((a,b)=>a[0]-b[0]);
-		return ret;
+		return this.bucket(sumFaces, x=>sumFaces(x[0])).sort();
+	}
+
+	count(val) {
+		// Counts the number of times val shows up in each result
+		// and buckets accordingly.
+		return this.map(faces=>countFaces(faces, val)).bucket().sort();
+	}
+
+	replace(pred, repl) {
+		return this.flatMap(faces=>replaceFaces(faces, pred, repl)).bucket().sort();
+	}
+
+	sort(key=x=>x, sorter) {
+		// Sorts the result rows.
+		if(sorter) {
+			this.results.sort(sorter);
+		} else {
+			this.results.sort((a,b)=> {
+				const keyA = key(a[0]);
+				const keyB = key(b[0]);
+				if(keyA < keyB) return -1;
+				if(keyA == keyB) return 0;
+				return 1;
+			});
+		}
+		return this;
 	}
 
 	reroll({summarize, map, key=defaultRerollKey, join, cleanup, threshold=.0001, rollMax=1000}={}) {
@@ -339,14 +363,40 @@ export class Roll {
 	}
 }
 
-export function sumFaces(val) {
+export function sumFaces(faces) {
 	// Convenience function for summing dice results.
 	// If the value is an array, flattens and sums the values;
 	// otherwise, just returns the value numberified.
-	if(Array.isArray(val)) {
-		return val.flat(Infinity).reduce((a,b)=>a+b, 0);
-	}
-	return +val;
+	faces = normalizeFaces(faces);
+	return faces.reduce((sum,face)=>sum+face, 0);
+}
+
+export function countFaces(faces, pred) {
+	// Convenience function for counting the number of times
+	// a particular dice result comes up.
+	// Works on both arrays and numeric values.
+	// If val is a function, calls it on each value;
+	// otherwise, just compares it.
+	faces = normalizeFaces(faces);
+	pred = normalizePred(pred);
+	return faces.reduce((sum, face)=>pred(face) ? sum+1 : sum, 0);
+}
+
+export function replaceFaces(faces, pred, repl) {
+	// Convenience function for replacing some faces of a result.
+	// Calls pred on each value, passing the face;
+	// when it's truthy replaces it with the repl value.
+	// If pred isn't a function, just checks if it's equal to the value.
+	// If repl is a function, calls it instead,
+	// passing the face value, and uses the return value.
+	faces = normalizeFaces(faces);
+	pred = normalizePred(pred);
+	faces = faces.map(face=>{
+		if(!pred(face)) return face;
+		if(typeof repl == "function") repl = repl(face);
+		return repl;
+	});
+	return flat(faces);
 }
 
 export function defaultRerollKey(val) {
@@ -385,6 +435,11 @@ export function flat(arr) {
 	}
 	return Roll.fromPairs(newPairs);
 }
+
+
+
+
+/* Internal functions below, not meant to be exported */
 
 function bucketList(pairs, key, join) {
 	// Internal function.
@@ -453,4 +508,17 @@ function rollCombine(rolls) {
 		])
 	}
 	return Roll.fromPairs(pairs);
+}
+
+function normalizeFaces(faces) {
+	// Turns faces into a flat array
+	if(Array.isArray(faces)) return faces.flat(Infinity);
+	return [faces];
+}
+
+function normalizePred(pred) {
+	// If pred is a non-function,
+	// returns a function that just checks against the value.
+	if(typeof pred == "function") return pred;
+	return x=>x==pred;
 }

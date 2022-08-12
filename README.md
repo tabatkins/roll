@@ -85,6 +85,9 @@ There are several ways to construct rolls:
 	Roll.nd(3,6).flatMap(faces=>
 		flat(faces.map(x=> x==6 ? Roll.d6 : x))
 	);
+
+	// Tho note this can be done much easier as
+	Roll.nd(3,6).replace(6, Roll.d6)
 	```
 
 * `Roll.fromFaces([any] faces)`
@@ -116,6 +119,42 @@ There are several ways to construct rolls:
 
 Once a `Roll` has been constructed,
 there are several methods for altering the result.
+
+* `r.sum()`
+
+	Replaces each roll result by the sum of its faces.
+
+	For example, `Roll.nd(3,6).sum()` returns a Roll
+	with results between 3 and 18,
+	rather than more than 200 individual die-face triples.
+
+	(Uses the `sumFaces(faces)` convenience function, also exported.)
+
+* `r.count((function|any) pred)`
+
+	For each result in the Roll, calls `pred` on each face in the result,
+	and replaces the result with the count of how many times it was truthy.
+	If `pred` isn't a function, just counts how many times the `pred` value appears.
+
+	For example, `Roll.nd(5, 10).count(x=>x>=8)`
+	returns a Roll with the chances of getting varying numbers of successes
+	on a World of Darkness dice pool of 5d10.
+
+	(Uses the `countFaces(faces, pred)` convenience function, also exported.)
+
+* `r.replace((function|any) pred, (function|any) repl)`
+
+	For each result in the Roll, calls `pred` on each face in the result,
+	and replaces it with `repl` if the predicate is truthy.
+	If `repl` is a function, calls it with the face as well,
+	and uses the return value;
+	otherwise just uses the value directly.
+
+	For example, `Roll.nd(2,6).replace(x=>x<=2, Roll.d6)`
+	will replace any 1s and 2s in the 2d6 results
+	with a fresh d6 roll.
+
+	(Uses the `replaceFaces(faces, pred, repl)` convenience function, also exported.)
 
 * `r.advantage(int n=2, function key=sumFaces)`
 * `r.disadvantage(int n=2, function key=sumFaces)`
