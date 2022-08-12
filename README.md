@@ -408,13 +408,14 @@ you probably want to know its results.
 	for convenience.
 	(It's used by `.sum()` as well.)
 
-* `r.text({string sep="", function fn=String, bool average=false}={})`
+* `r.text({string sep="", function fn=String, bool average}={})`
 
 	Returns the results as a string of text,
 	with each result looking like `<[value] [chance]%>`
 	(like `<1 16.7%>` for a result from a d6).
 	If `average` is truthy,
 	additionally appends an `<average [value]>` to the end.
+	(If not passed, it's automatically added if the average isn't NaN.)
 
 	Each value is mapped by `fn` before being added to string,
 	and all the results are joined by the `sep` string
@@ -429,3 +430,4 @@ you probably want to know its results.
 	and the second column being the chance.
 	If `average` is truthy,
 	appends a final average row to the table.
+	(If not passed, it's automatically added if the average isn't NaN.)
