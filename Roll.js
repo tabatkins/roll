@@ -296,12 +296,18 @@ export class Roll {
 		}).reduce((a,b)=>a+b, 0);
 	}
 
-	table({fn=String, average=false}={}) {
+	table({fn=String, average}={}) {
 		// Converts the Roll into a <table> element,
 		// with two columns: the value (mapped thru fn),
 		// and the chance.
 		// If average is truthy, adds a final row with the
 		// results of .average().
+		// (If not passed, average is auto-added if it exists.)
+		if(average == undefined) {
+			// Try to calculate average
+			let avgValue = this.average();
+			if(!Number.isNaN(avgValue)) average = true;
+		}
 		return mk.table({},
 			mk.tbody({},
 				...this.results.map(([val, chance])=>
@@ -318,6 +324,11 @@ export class Roll {
 	text({sep="", fn=String, average=false}={}) {
 		// Similar to .table() but instead returns raw text,
 		// for easy viewing in text contexts like the console.
+		if(average == undefined) {
+			// Try to calculate average
+			let avgValue = this.average();
+			if(!Number.isNaN(avgValue)) average = true;
+		}
 		const ret = this.results.map(([val, chance])=>{
 			return `<${fn(val)} / ${(chance*100).toFixed(2)}%>`
 		});
