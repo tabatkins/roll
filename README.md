@@ -429,11 +429,13 @@ there are several methods for altering the result.
 Once you've gotten a `Roll`,
 you probably want to know its results.
 
-* `r.roll()`
+* `r.roll(int? n)`
 
 	Rolls the dice!
 	Returns one of the possible values,
 	weighted appropriately based on the chances.
+
+	If `n` is passed, returns an array of `n` roll results.
 
 * `r.average(function fn=sumFaces)`
 

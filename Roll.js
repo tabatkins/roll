@@ -297,18 +297,22 @@ export class Roll {
 		});
 	}
 
-	roll() {
+	roll(n) {
 		// Rolls the dice, returning one result at random.
-		const totalChance = this.results.reduce((s, r)=>s+r[1], 0);
-		const r = Math.random() * totalChance;
-		let soFar = 0;
-		for(const [val, chance] of this.results) {
-			soFar += chance;
-			if(soFar >= r) return val;
+		const doRoll = () => {
+			const totalChance = this.results.reduce((s, r)=>s+r[1], 0);
+			const r = Math.random() * totalChance;
+			let soFar = 0;
+			for(const [val, chance] of this.results) {
+				soFar += chance;
+				if(soFar >= r) return val;
+			}
+			// I might be able to hit this spot due to FP inaccuracy,
+			// so just return the last value.
+			return this.results[this.results.length-1][0];
 		}
-		// I might be able to hit this spot due to FP inaccuracy,
-		// so just return the last value.
-		return this.results[this.results.length-1][0];
+		if(n == undefined) return doRoll();
+		return Array.from({length:+n}, doRoll);
 	}
 
 	average(fn=sumFaces) {
