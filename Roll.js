@@ -46,6 +46,7 @@ export class Roll {
 	static get d6() { return Roll.d(6); }
 	static get d8() { return Roll.d(8); }
 	static get d10() { return Roll.d(10); }
+	static get d12() { return Roll.d(12); }
 	static get d20() { return Roll.d(20); }
 
 	normalize() {
