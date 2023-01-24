@@ -325,6 +325,20 @@ export class Roll {
 		}).reduce((a,b)=>a+b, 0);
 	}
 
+	min(fn=sumFaces) {
+		// Assuming the values are numbers or arrays of numbers,
+		// returns the min value of the Roll.
+		// Can pass a fn to convert the values into a number.
+		return this.results.map(([val, chance])=>fn(val)).reduce((soFar,val)=>Math.min(soFar, val), Infinity);
+	}
+
+	max(fn=sumFaces) {
+		// Assuming the values are numbers or arrays of numbers,
+		// returns the max value of the Roll.
+		// Can pass a fn to convert the values into a number.
+		return this.results.map(([val, chance])=>fn(val)).reduce((soFar,val)=>Math.max(soFar, val), -Infinity);
+	}
+
 	table({fn=String, average}={}) {
 		// Converts the Roll into a <table> element,
 		// with two columns: the value (mapped thru fn),
