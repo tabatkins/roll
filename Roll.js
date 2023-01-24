@@ -33,12 +33,12 @@ export class Roll {
 		return Roll.fromPairs(Array.from({length:sides}, (e,i)=>[i+1, 1/sides]));
 	}
 
-	static nd(num, sides) {
-		// Returns a Roll whose results are a num-length array
-		// of values each between 1 and sides,
-		// all with an equal chance of occuring.
+	static nd(num, die) {
+		// Returns a roll composed of N dice,
+		// either duplicates of `die` or a `die`-sided dice (if `die` is a number).
 		// aka nd(2, 6) gives 36 results, from [1,1] to [6,6].
-		return flat(Array.from({length:num}, x=>Roll.d(sides)));
+		if(typeof die == "number") die = Roll.d(die);
+		return flat(Array.from({length:num}, x=>die));
 	}
 
 	// Shorthands for common die sizes
