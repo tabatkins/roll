@@ -130,31 +130,38 @@ there are several methods for altering the result.
 
 	(Uses the `sumFaces(faces)` convenience function, also exported.)
 
-* `r.count((function|any) pred)`
+* `r.count((function|any) target)`
 
-	For each result in the Roll, calls `pred` on each face in the result,
-	and replaces the result with the count of how many times it was truthy.
-	If `pred` isn't a function, just counts how many times the `pred` value appears.
+	Replaces each result with a count of how many times a particular value appears among the result's faces,
+	then combines identical counts together.
+
+	If `target` is not a function, just counts how many times the `target` value appears among the faces.
+
+	If `target` is a function, calls it on each face, and counts how many times the function returns a truthy value.
 
 	For example, `Roll.nd(5, 10).count(x=>x>=8)`
-	returns a Roll with the chances of getting varying numbers of successes
-	on a World of Darkness dice pool of 5d10.
+  	counts how many faces on each possibly roll of a 5d10 are 8 or higher
+  	(matching how to count successes on a World of Darkness dice pool),
+  	returning a roll with the chance of 0-5 successes.
+  	`Roll.nd(8, 6).count(6)` will count how many times a 6 shows up
+  	among 8d6.
 
 	(Uses the `countFaces(faces, pred)` convenience function, also exported.)
 
-* `r.replace((function|any) pred, (function|any) repl)`
+* `r.replace((function|any) target, (function|any) repl)`
 
-	For each result in the Roll, calls `pred` on each face in the result,
-	and replaces it with `repl` if the predicate is truthy.
-	If `repl` is a function, calls it with the face as well,
-	and uses the return value;
-	otherwise just uses the value directly.
+	Replaces some of the faces on each result.
+	If `target` is not a function, it replaces any faces that match the target;
+	if it is, it calls `target(face)` and replaces any that return a truthy value.
+
+	If `repl` is not a function, it's used as the replacement for any valid targets;
+	if it is, `repl(face)` is called, and the return value is used as the replacement.
 
 	For example, `Roll.nd(2,6).replace(x=>x<=2, Roll.d6)`
 	will replace any 1s and 2s in the 2d6 results
 	with a fresh d6 roll.
 
-	(Uses the `replaceFaces(faces, pred, repl)` convenience function, also exported.)
+	(Uses the `replaceFaces(faces, target, repl)` convenience function, also exported.)
 
 * `r.advantage(int n=2, function key=sumFaces)`
 * `r.disadvantage(int n=2, function key=sumFaces)`
@@ -185,7 +192,7 @@ there are several methods for altering the result.
 	which each *individually* explode when they roll a 6.
 
 	The optional `threshold` argument can be a number,
-	in which case it rerolls whenever the roll is >= the threshold;
+	in which case it rerolls whenever the roll's sum is >= the threshold;
 	or it can be a function,
 	which is passed a list of the Roll values
 	and must return a threshold number
@@ -258,6 +265,9 @@ you can get low-level and manipulate Rolls more directly:
 	Then the list of grouped values is passed to the `join` function
 	to produce the new value;
 	by default it just selects the first one.
+	(This is fine if all the results grouped by the `key` are in fact identical,
+	but if you want to do some more complicated combination of the values,
+	you can.)
 
 	For example, in the description of `.flatMap()`
 	the reroll produced multiple faces with the same value.
