@@ -132,7 +132,7 @@ window.addEventListener('hashchange', runHash);
 	<ul id=examples>
 		<li><a href="#Roll.d20.advantage().table(%7Baverage%3Atrue%7D)%3B">d20 with advantage</a>
 		<li><a href="#Roll.nd(3%2C6).sum().table(%7Baverage%3Atrue%7D)">sum of 3d6</a>
-		<li><a href="#Roll.nd(2%2C6).reroll(%7B%0A%20map(faces)%20%7B%20return%20%7Bdone%3A%20R.flat(faces.map(face%3D%3Eface%3C%3D2%20%3F%20Roll.d6%20%3A%20face))%7D%3B%20%7D%0A%7D).sum().table(%7Baverage%3Atrue%7D)">Greatsword damage, with Great Weapon Master (2d6, reroll 1s and 2s a single time)</a>
+		<li><a href="#Roll.nd(2%2C6).replace(face%3D%3Eface%3C%3D2%2C%20Roll.d6).sum()">Greatsword damage, with Great Weapon Master (2d6, reroll 1s and 2s a single time)</a>
 		<li><a href="#Roll.d6.reroll(%7B%0A%20map(x)%20%7B%20return%20x%3D%3D6%20%3F%20Roll.d6%20%3A%20x%20%7D%0A%7D)">A d5, simulated by rerolling a d6 whenever it comes up 6</a>
 		<li><a href='#log(DOM.mk.h1(%7B%7D%2C"D%26D%20Death%20Saves"))%3B%0A%0Alog(Roll.d20.reroll(%7B%0A%09summarize(roll%2C%20oldSummary%3D%7B%7D)%20%7B%0A%09%09return%20%7B%0A%09%09%09successes%3A(roll>%3D10%3F1%3A0)%20%2B%20(oldSummary.successes%20%7C%7C%200)%2C%0A%09%09%09failures%3A(roll<10%3F1%3A0)%20%2B%20(roll%3D%3D1%3F1%3A0)%20%2B%20(oldSummary.failures%20%7C%7C%200)%2C%0A%09%09%09nat20%3A%20(roll%3D%3D20)%2C%0A%09%09%09toString()%20%7B%20return%20%60%24%7Bthis.successes%7D%2F%24%7Bthis.failures%7D%2F%24%7Bthis.nat20%7D%60%3B%20%7D%2C%0A%09%09%7D%0A%09%7D%2C%0A%09map(summary)%20%7B%0A%09%09if(summary.nat20)%20return%20"revive"%3B%0A%09%09if(summary.successes%20>%3D%203)%20return%20"stabilize"%3B%0A%09%09if(summary.failures%20>%3D%203)%20return%20"die"%3B%0A%09%09return%20Roll.d20%3B%0A%09%7D%0A%7D))'>D&D 5e death save outcomes</a>
 </details>
