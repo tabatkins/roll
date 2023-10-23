@@ -272,12 +272,12 @@ export class Roll {
 		// done n times,
 		// with the highest result kept.
 		// key converts the result into something that can be max'd.
-		return flat(Array.from({length:n}, x=>this)).keepHighest(1, key, compareFn)
+		return Roll.nd(n, this).keepHighest(1, key, compareFn)
 	}
 
 	disadvantage(n=2, key=sumFaces, compareFn=(a,b)=>key(b)-key(a)) {
 		// Same as .advantage() except the lowest is kept.
-		return flat(Array.from({length:n}, x=>this)).keepLowest(1, key, compareFn);
+		return Roll.nd(n, this).keepLowest(1, key, compareFn);
 	}
 
 	explode({threshold, pred, sum=sumFaces, times=Infinity}={}) {

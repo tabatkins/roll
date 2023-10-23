@@ -49,7 +49,7 @@ There are several ways to construct rolls:
 	that is, whose pairs contain the values 1-D,
 	and all have the same 1/D chance.
 
-* `Roll.nd(int N, int D)`
+* `Roll.nd(int N, int|Roll D)`
 
 	Returns a `Roll` representing a roll of NdD dice.
 	The pairs are arrays of N values, each 1-D,
@@ -58,6 +58,16 @@ There are several ways to construct rolls:
 	For example, `Roll.nd(3,6)` represents a 3d6 roll.
 	Each result pair is a value like `[1, 2, 4]`,
 	and has a 1/216 (6^3) chance.
+
+	You can alternately pass another Roll as the D,
+	and it will duplicate that roll N times,
+	making a composite die.
+	For example, `Roll.nd(2, Roll.d6.explode())`
+	creates a roll with a pair of individually-exploding d6s
+	(very distinct from `Roll.nd(2,6).explode()`,
+	which only explodes when the combined roll is 12).
+	(In AnyDice notation,
+	these would be written `2d[explode d6]` vs `explode 2d6`.)
 
 * `flat([Roll | any] values)`
 
