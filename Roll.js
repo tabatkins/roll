@@ -253,7 +253,7 @@ export class Roll {
 		return Roll.fromPairs(finishedPairs);
 	}
 
-	keepHighest(n=1, key=Number, compareFn=(a,b)=>key(b)-key(a)) {
+	keepHighest(n=1, key=sumFaces, compareFn=(a,b)=>key(b)-key(a)) {
 		// Keeps only the top N faces among each result.
 		// compareFn should sort the faces highest-first
 		return this.map(faces=>{
@@ -261,7 +261,7 @@ export class Roll {
 		}).bucket().sort(key);
 	}
 
-	dropHighest(n=1, key=Number, compareFn=(a,b)=>key(b)-key(a)) {
+	dropHighest(n=1, key=sumFaces, compareFn=(a,b)=>key(b)-key(a)) {
 		// Keeps only the top N faces among each result.
 		// compareFn should sort the faces highest-first
 		return this.map(faces=>{
@@ -269,7 +269,7 @@ export class Roll {
 		}).bucket().sort(key);
 	}
 
-	keepLowest(n=1, key=Number, compareFn=(a,b)=>key(b)-key(a)) {
+	keepLowest(n=1, key=sumFaces, compareFn=(a,b)=>key(b)-key(a)) {
 		// Keeps only the top N faces among each result.
 		// compareFn should sort the faces highest-first
 		return this.map(faces=>{
@@ -277,7 +277,7 @@ export class Roll {
 		}).bucket().sort(key);
 	}
 
-	dropLowest(n=1, key=Number, compareFn=(a,b)=>key(b)-key(a)) {
+	dropLowest(n=1, key=sumFaces, compareFn=(a,b)=>key(b)-key(a)) {
 		// Keeps only the top N faces among each result.
 		// key converts each face into something that can be compared
 		// compareFn should sort the faces highest-first

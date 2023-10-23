@@ -194,7 +194,7 @@ there are several methods for altering the result.
 
 	(Uses the `replaceFaces(faces, target, repl)` convenience function, also exported.)
 
-* `r.keepHighest(int n=1, function key=Number, function compareFn=(a,b)=>key(b)-key(a))`
+* `r.keepHighest(int n=1, function key=sumFaces, function compareFn=(a,b)=>key(b)-key(a))`
 * `r.dropHighest(...)`
 * `r.keepLowest(...)`
 * `r.dropLowest(...)`
