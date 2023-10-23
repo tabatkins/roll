@@ -163,8 +163,25 @@ there are several methods for altering the result.
 
 	(Uses the `replaceFaces(faces, target, repl)` convenience function, also exported.)
 
-* `r.advantage(int n=2, function key=sumFaces)`
-* `r.disadvantage(int n=2, function key=sumFaces)`
+* `r.keepHighest(int n=1, function key=Number, function compareFn=(a,b)=>key(b)-key(a))`
+* `r.dropHighest(...)`
+* `r.keepLowest(...)`
+* `r.dropLowest(...)`
+
+	Keeps or drops the N highest or lowest faces of each result,
+	then buckets and sorts the result.
+
+	For example, `Roll.nd(4,6).keepHighest(2)` will give a roll
+	with outcomes from 2-12 (as you'd expect for keeping 2 d6s),
+	but with high numbers being vastly more common than low ones.
+
+	If your faces are non-numeric,
+	`key` and `compareFn` can be used to control
+	what are considered "highest" or "lowest" faces.
+	The `compareFn` must sort "highest" first to work correctly.
+
+* `r.advantage(int n=2, function key=sumFaces, function compareFn=(a,b)=>key(b)-key(a))`
+* `r.disadvantage(...)`
 
 	Repeats the roll N times,
 	taking the highest (or lowest) result
@@ -177,6 +194,11 @@ there are several methods for altering the result.
 	but the chances will have shifted upwards,
 	with 1 now having a 1/400 chance
 	and 20 having a 39/400 chance.
+
+	By default, sums the faces to determine what is "highest",
+	but this can be controlled with `key` and `compareFn`,
+	as per `keepHighest()`/etc.
+	(These functions are implemented on top of `keepHighest(1)` and `keepLowest(1)`.)
 
 * `r.explode({(int or function)? threshold, function? pred, function sum=sumFaces, int times=Infinity})`
 
