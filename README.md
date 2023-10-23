@@ -487,14 +487,13 @@ you can get low-level and manipulate Rolls more directly:
 	`[[1, 2], [3, 4]]` becomes `[1, 2, 3, 4]`
 	etc.
 
-	Most of the time this isn't necessary for standard use;
-	with standard stringifying you can't tell the difference
-	between a non-array and a single-value array,
-	or between a nested and flat array,
-	and `sumFaces` handles non-arrays and nested arrays just fine,
-	but if you're doing manual processing of the faces
-	this can be very helpful.
-
+	This *does* potentially change the semantics of the `Roll`;
+	for example, `Roll.nd(2, Roll.nd(2,6))` is a pair of 2d6s,
+	not 4d6.
+	Calling `.keepHighest()` on the roll
+	will give you the higher of the two 2d6 values;
+	calling `.normalizeFaces.keepHighest()` will instead give you
+	the highest d6 of the 4d6.
 
 ## Displaying Rolls
 
