@@ -127,7 +127,7 @@ export class Roll {
 		return this.flatMap(faces=>replaceFaces(faces, pred, repl)).bucket().sort();
 	}
 
-	sort(key=x=>x, sorter) {
+	sort(key=x=>x, sorter=undefined) {
 		// Sorts the result rows.
 		if(sorter) {
 			this.results.sort(sorter);
@@ -234,28 +234,28 @@ export class Roll {
 		return Roll.fromPairs(finishedPairs);
 	}
 
-	keepHighest(n=1, compareFn=(a,b)=>b-a) {
+	keepHighest(n=1, key=Number, compareFn=(a,b)=>key(b)-key(a)) {
 		// Keeps only the top N faces among each result.
 		// compareFn should sort the faces highest-first
 		return this.map(faces=>{
 			return faces.slice().sort(compareFn).slice(0,n);
-		}).bucket().sort();
+		}).bucket().sort(key);
 	}
 
-	dropHighest(n=1, compareFn=(a,b)=>b-a) {
+	dropHighest(n=1, key=Number, compareFn=(a,b)=>key(b)-key(a)) {
 		// Keeps only the top N faces among each result.
 		// compareFn should sort the faces highest-first
 		return this.map(faces=>{
 			return faces.slice().sort(compareFn).slice(n);
-		}).bucket().sort();
+		}).bucket().sort(key);
 	}
 
-	keepLowest(n=1, compareFn=(a,b)=>b-a) {
+	keepLowest(n=1, key=Number, compareFn=(a,b)=>key(b)-key(a)) {
 		// Keeps only the top N faces among each result.
 		// compareFn should sort the faces highest-first
 		return this.map(faces=>{
 			return faces.slice().sort(compareFn).slice(-n);
-		}).bucket().sort();
+		}).bucket().sort(key);
 	}
 
 	dropLowest(n=1, key=Number, compareFn=(a,b)=>key(b)-key(a)) {
@@ -264,7 +264,7 @@ export class Roll {
 		// compareFn should sort the faces highest-first
 		return this.map(faces=>{
 			return faces.slice().sort(compareFn).slice(0,-n);
-		}).bucket().sort();
+		}).bucket().sort(key);
 	}
 
 	advantage(n=2, key=sumFaces, compareFn=(a,b)=>key(b)-key(a)) {
@@ -272,12 +272,12 @@ export class Roll {
 		// done n times,
 		// with the highest result kept.
 		// key converts the result into something that can be max'd.
-		return flat(Array.from({length:n}, x=>this)).keepHighest(n, key, compareFn)
+		return flat(Array.from({length:n}, x=>this)).keepHighest(1, key, compareFn)
 	}
 
 	disadvantage(n=2, key=sumFaces, compareFn=(a,b)=>key(b)-key(a)) {
 		// Same as .advantage() except the lowest is kept.
-		return flat(Array.from({length:n}, x=>this)).keepLowest(n, key, compareFn);
+		return flat(Array.from({length:n}, x=>this)).keepLowest(1, key, compareFn);
 	}
 
 	explode({threshold, pred, sum=sumFaces, times=Infinity}={}) {
