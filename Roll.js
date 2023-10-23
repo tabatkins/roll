@@ -47,11 +47,6 @@ export class Roll {
 		return flat(rolls);
 	}
 
-	and(...rolls) {
-		// And a method version of Roll.and()
-		return Roll.and(this, ...rolls)
-	}
-
 	// Shorthands for common die sizes
 	static get d4() { return Roll.d(4); }
 	static get d6() { return Roll.d(6); }
@@ -60,11 +55,24 @@ export class Roll {
 	static get d12() { return Roll.d(12); }
 	static get d20() { return Roll.d(20); }
 
+	and(...rolls) {
+		// And a method version of Roll.and()
+		return Roll.and(this, ...rolls)
+	}
+
 	normalize() {
 		// Rescales all the chances so they sum to 1.
 		const total = this.results.reduce((sum, pair)=>sum + pair[1], 0);
 		this.results.forEach(pair=>pair[1] /= total);
 		return this;
+	}
+
+	normalizeFaces() {
+		// Ensures that each value is a flat array of values.
+		// e.g. `1` becomes `[1]`,
+		// `[[1, 2], [3, 4]]` becomes `[1, 2, 3, 4]`
+		// etc.
+		return this.map(normalizeFaces);
 	}
 
 	map(fn) {

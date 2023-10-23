@@ -480,6 +480,22 @@ you can get low-level and manipulate Rolls more directly:
 	If your `Roll`'s results' chances don't sum to 1,
 	this will rescale them so they do.
 
+* `r.normalizeFaces()`
+
+	Ensures that your `Roll`'s values are all flat arrays;
+	e.g. `1` becomes `[1]`,
+	`[[1, 2], [3, 4]]` becomes `[1, 2, 3, 4]`
+	etc.
+
+	Most of the time this isn't necessary for standard use;
+	with standard stringifying you can't tell the difference
+	between a non-array and a single-value array,
+	or between a nested and flat array,
+	and `sumFaces` handles non-arrays and nested arrays just fine,
+	but if you're doing manual processing of the faces
+	this can be very helpful.
+
+
 ## Displaying Rolls
 
 Once you've gotten a `Roll`,
