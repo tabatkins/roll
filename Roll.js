@@ -234,23 +234,50 @@ export class Roll {
 		return Roll.fromPairs(finishedPairs);
 	}
 
-	advantage(n=2, key=sumFaces) {
+	keepHighest(n=1, compareFn=(a,b)=>b-a) {
+		// Keeps only the top N faces among each result.
+		// compareFn should sort the faces highest-first
+		return this.map(faces=>{
+			return faces.slice().sort(compareFn).slice(0,n);
+		}).bucket().sort();
+	}
+
+	dropHighest(n=1, compareFn=(a,b)=>b-a) {
+		// Keeps only the top N faces among each result.
+		// compareFn should sort the faces highest-first
+		return this.map(faces=>{
+			return faces.slice().sort(compareFn).slice(n);
+		}).bucket().sort();
+	}
+
+	keepLowest(n=1, compareFn=(a,b)=>b-a) {
+		// Keeps only the top N faces among each result.
+		// compareFn should sort the faces highest-first
+		return this.map(faces=>{
+			return faces.slice().sort(compareFn).slice(-n);
+		}).bucket().sort();
+	}
+
+	dropLowest(n=1, key=Number, compareFn=(a,b)=>key(b)-key(a)) {
+		// Keeps only the top N faces among each result.
+		// key converts each face into something that can be compared
+		// compareFn should sort the faces highest-first
+		return this.map(faces=>{
+			return faces.slice().sort(compareFn).slice(0,-n);
+		}).bucket().sort();
+	}
+
+	advantage(n=2, key=sumFaces, compareFn=(a,b)=>key(b)-key(a)) {
 		// Returns a new Roll that's the original roll,
 		// done n times,
 		// with the highest result kept.
 		// key converts the result into something that can be max'd.
-		return flat(Array.from({length:n}, x=>this)).map(faces=>{
-			faces.sort((a,b)=>key(a)-key(b));
-			return faces[faces.length-1];
-		}).bucket();
+		return flat(Array.from({length:n}, x=>this)).keepHighest(n, key, compareFn)
 	}
 
-	disadvantage(n=2, key=sumFaces) {
+	disadvantage(n=2, key=sumFaces, compareFn=(a,b)=>key(b)-key(a)) {
 		// Same as .advantage() except the lowest is kept.
-		return flat(Array.from({length:n}, x=>this)).map(faces=>{
-			faces.sort((a,b)=>key(a)-key(b));
-			return faces[0];
-		}).bucket();
+		return flat(Array.from({length:n}, x=>this)).keepLowest(n, key, compareFn);
 	}
 
 	explode({threshold, pred, sum=sumFaces, times=Infinity}={}) {
