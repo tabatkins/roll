@@ -55,6 +55,33 @@ export class Roll {
 	static get d12() { return Roll.d(12); }
 	static get d20() { return Roll.d(20); }
 
+	static parse(s) {
+		s = s.replace(/\s+/, "");
+		const singleItem = /^([+-]?)(\d+)(?:d(\d+))?/;
+		const rolls = [];
+		while(true) {
+			const match = singleItem.exec(s);
+			if(!match) break;
+			let [whole, sign, num, die] = match;
+			console.log({whole, sign, num, die})
+			sign = sign == "-" ? -1 : 1;
+			num = +num;
+			die = +die;
+			let roll;
+			if(!die) {
+				roll = sign*num;
+			} else {
+				roll = Roll.nd(num, die).map(faces=>faces.map(x=>x*sign));
+			}
+			rolls.push(roll);
+			s = s.slice(whole.length);
+		}
+		if(s != "") {
+			throw new Error(`Unparseable junk in the dice expression '${s}'.`);
+		}
+		return flat(rolls);
+	}
+
 	and(...rolls) {
 		// And a method version of Roll.and()
 		return Roll.and(this, ...rolls)
