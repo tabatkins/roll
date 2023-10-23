@@ -22,7 +22,7 @@ export class Roll {
 	static fromFaces(faces) {
 		// Returns a Roll whose results are each of the faces values,
 		// each with an equal chance of occurring.
-		return Roll.fromPairs(faces.map(x=>[x, 1/x.length]))
+		return Roll.fromPairs(faces.map(x=>[x, 1/faces.length]))
 	}
 
 	static d(sides) {
