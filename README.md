@@ -69,22 +69,33 @@ There are several ways to construct rolls:
 	(In AnyDice notation,
 	these would be written `2d[explode d6]` vs `explode 2d6`.)
 
-* `flat([Roll | any] values)`
+* `Roll.and(...[Role | any] values)`
 
-	(Note: this is a free-standing function in the module,
-	not a `Roll` method.)
-
-	"Flattens" an array of `Roll`s
+	Combines multiple `Rolls`
 	(and non-`Roll` values)
 	into a single `Roll` whose results are arrays of values,
-	taken from every possible combination of the starting `Roll`s.
+	taken from every possible combination of the inputs.
 
-	For example, `flat([Roll.d6, Roll.d6, Roll.d6])`
-	produces the same result as `Roll.nd(3,6)` -
-	a roll with 216 results,
-	each an array of numbers like `[1, 2, 4]`.
-	(In fact, `Roll.nd()` just makes an array of `Roll.d()` values,
-	then calls `flat()`.)
+	For example, `Roll.and(Roll.d4, Roll.d6)`
+	produces a `Roll` with 24 results,
+	each an array of two values ranging from 1-4 and 1-6.
+	(Aka `d4 + d6`.)
+
+	Non-`Roll` values can be passed,
+	and are taken as constants;
+	e.g. `Roll.and(Roll.d4, 3)`
+	is effectively `1d4 + 3`.
+
+	(See also `r.and()`, which is the same function
+	but as a method on existing rolls,
+	if that's more convenient.)
+
+* `flat([Roll | any] values)`
+
+	The same as `Roll.and()`,
+	but as a free-standing function in the module,
+	and takes a single input that's an array of the `Roll` values;
+	that is, `flat([d1, d2, d3])` is identical to `Roll.any(d1, d2, d3)`.
 
 	Especially useful when processing a multi-die roll
 	in a `.flatMap()` callback,
@@ -130,6 +141,16 @@ There are several ways to construct rolls:
 Once a `Roll` has been constructed,
 there are several methods for altering the result.
 
+* `r.and(...[Roll | any] values)`
+
+	Combines the current roll with one or more additional `Roll`s
+	(or non-`Roll` values, treated as constants).
+	For example, `Roll.2d6.and(Roll.d4)`
+	produces a `2d6 + 1d4` result.
+
+	This is identical to the static `Roll.and()` function;
+	`d1.and(d2)` does the exact same thing as `Roll.and(d1, d2)`.
+
 * `r.sum()`
 
 	Replaces each roll result by the sum of its faces.
@@ -150,7 +171,7 @@ there are several methods for altering the result.
 	If `target` is a function, calls it on each face, and counts how many times the function returns a truthy value.
 
 	For example, `Roll.nd(5, 10).count(x=>x>=8)`
-  	counts how many faces on each possibly roll of a 5d10 are 8 or higher
+  	counts how many faces on each possible roll of a 5d10 are 8 or higher
   	(matching how to count successes on a World of Darkness dice pool),
   	returning a roll with the chance of 0-5 successes.
   	`Roll.nd(8, 6).count(6)` will count how many times a 6 shows up

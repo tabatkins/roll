@@ -41,6 +41,17 @@ export class Roll {
 		return flat(Array.from({length:num}, x=>die));
 	}
 
+	static and(...rolls) {
+		// Convenience version of flat() that takes the dice directly,
+		// rather than as an array.
+		return flat(rolls);
+	}
+
+	and(...rolls) {
+		// And a method version of Roll.and()
+		return Roll.and(this, ...rolls)
+	}
+
 	// Shorthands for common die sizes
 	static get d4() { return Roll.d(4); }
 	static get d6() { return Roll.d(6); }
