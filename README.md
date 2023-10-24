@@ -69,7 +69,7 @@ There are several ways to construct rolls:
 	(In AnyDice notation,
 	these would be written `2d[explode d6]` vs `explode 2d6`.)
 
-* `Roll.and(...[Role | any] values)`
+* `Roll.and(...(Role | any) values)`
 
 	Combines multiple `Rolls`
 	(and non-`Roll` values)
@@ -89,6 +89,25 @@ There are several ways to construct rolls:
 	(See also `r.and()`, which is the same function
 	but as a method on existing rolls,
 	if that's more convenient.)
+
+* `Roll.parse(str diceExpr)`
+
+	Parses a string like `2d6 + 1d4 - 5` into a Roll
+	(in this case, identical to `Roll.and(Roll.nd(2,6), Roll.d4, -5)`).
+
+	This syntax is under active development,
+	but will likely be a close analog
+	(or possibly an exact duplicate)
+	of Roll20 Syntax,
+	as it's generally pretty reasonable.
+
+	Currently supports:
+
+	* Addition and subtraction of terms
+	* Plain numbers
+	* Dice expressions, with:
+		* `k`/`d`/`kh`/`kl`/`dh`/`dl` suffixes, like `4d6d1` for "4d6, drop lowest 1". Number is required.
+		* `adv`/`dis` suffixes, like `1d20adv` for "1d20, rolled with advantage". A following number is optional to indicate how many rolls should be made and then the highest/lowest selected from. Elven advantage, for example, would be `1d20adv3`.
 
 * `flat([Roll | any] values)`
 
