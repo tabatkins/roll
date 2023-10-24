@@ -57,27 +57,51 @@ export class Roll {
 
 	static parse(s) {
 		s = s.replaceAll(/\s+/g, "");
-		const singleItem = /^([+-]?)(\d+)(?:d(\d+))?/;
+		const diceTerms = s.split(/(?=[+-])/);
+		if(diceTerms[0] == "") diceTerms.shift();
+
+		const numRe = /^([+-]?\d+)$/;
+		const dieRe = /^([+-]?)(\d+)d(\d+)(?:(d|k|dh|dl|kh|kl)(\d+))?(?:(adv|dis)(\d*))?$/;
 		const rolls = [];
-		while(true) {
-			const match = singleItem.exec(s);
-			if(!match) break;
-			let [whole, sign, num, die] = match;
-			console.log({whole, sign, num, die})
-			sign = sign == "-" ? -1 : 1;
-			num = +num;
-			die = +die;
-			let roll;
-			if(!die) {
-				roll = sign*num;
+
+		while(diceTerms.length > 0) {
+			const diceTerm = diceTerms.shift();
+			if(numRe.test(diceTerm)) {
+				const [_, num] = numRe.exec(diceTerm);
+				rolls.push(+num);
+				continue;
+			} else if (dieRe.test(diceTerm)) {
+				let [_, sign, num, size, keepType, keepNum, ad, adNum] = dieRe.exec(diceTerm);
+				sign = sign == "-" ? -1 : 1;
+				num = +num;
+				size = +size;
+				keepNum = +keepNum;
+				let roll = Roll.nd(num, size)
+				if(keepType) {
+					switch(keepType) {
+					case "k":
+					case "kh": roll = roll.keepHighest(keepNum); break;
+					case "kl": roll = roll.keepLowest(keepNum); break;
+					case "d":
+					case "dl": roll = roll.dropLowest(keepNum); break;
+					case "dh": roll = roll.dropHighest(keepNum); break;
+					}
+				}
+				if(ad) {
+					adNum = adNum ? +adNum : 2;
+					console.log({ad, adNum})
+					switch(ad) {
+					case "adv": roll = roll.advantage(adNum); break;
+					case "dis": roll = roll.disadvantage(adNum); break;
+					}
+					console.log()
+				}
+				roll = roll.mapFaces(x=>x*sign);
+				rolls.push(roll);
+				continue;
 			} else {
-				roll = Roll.nd(num, die).map(faces=>faces.map(x=>x*sign));
+				throw new Error(`Couldn't parse the dice term '${diceTerm}'.`);
 			}
-			rolls.push(roll);
-			s = s.slice(whole.length);
-		}
-		if(s != "") {
-			throw new Error(`Unparseable junk in the dice expression '${s}'.`);
 		}
 		return flat(rolls);
 	}
@@ -127,6 +151,16 @@ export class Roll {
 		// In other words, maps fn over the values, but if it returns
 		// a Roll, expands that Roll's results into the outer Roll.
 		return this.map(fn).join();
+	}
+
+	mapFaces(fn) {
+		// Map over the faces of each result individually,
+		// when you don't care about the result as a whole.
+		const deepMap = (sub, fn)=> {
+			if(Array.isArray(sub)) return sub.map(x=>deepMap(x, fn));
+			return fn(sub);
+		}
+		return this.map(faces=>deepMap(faces, fn));
 	}
 
 	bucket(key=String, join=x=>x[0]) {
