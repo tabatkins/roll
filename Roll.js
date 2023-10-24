@@ -56,7 +56,7 @@ export class Roll {
 	static get d20() { return Roll.d(20); }
 
 	static parse(s) {
-		s = s.replace(/\s+/, "");
+		s = s.replaceAll(/\s+/g, "");
 		const singleItem = /^([+-]?)(\d+)(?:d(\d+))?/;
 		const rolls = [];
 		while(true) {
