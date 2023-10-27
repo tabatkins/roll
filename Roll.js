@@ -1,28 +1,54 @@
 import {mk} from "./DOM.js"
 
+export class Result {
+	constructor(faces, chance) {
+		if(!Array.isArray(faces)) faces = [faces];
+		if(!(typeof chance == "number")) throw new Error("Result.chance must be a number.");
+		this.faces = faces;
+		this.chance = chance;
+	}
+
+	normalize() {
+		// Flattens the faces array into a flat array.
+		// If there are any Rolls in the faces, expands them into multiple Results.
+		// This method returns an array of Results.
+
+		if(this.faces.some(x=>Array.isArray(x))) {
+			this.faces = this.faces.flat(Infinity);
+		}
+
+		// If there are any Rolls, expand them into multiple results
+		if(!result.faces.some(x=>x instanceof Roll)) {
+			return [this];
+		}
+		return flat(this.faces).map(x=>x.chance *= this.chance);
+	}
+}
+
 export class Roll {
 	// Roll represents all the outcomes of a roll.
-	// .results is a list of [value, chance] pairs
-	// (ideally with the chances summing to 1,
-	//  but I don't enforce that).
+	// .results is a list of Results, which contain a list of faces
+	// and an associated chance (ideally with the chances summing to 1).
+	// The list of faces
+	// value is a list of individual "faces" for the result:
+	// each face can be any primitive, or any object other than
+	// a Roll (which are )
 
-	constructor(val=[]) {
-		// Point. Returns a Roll where the given value
-		// has a 100% chance of occurring.
-		this.results = [[val, 1]];
+	constructor(results) {
+		results.forEach(res=>{if(!(res instanceof Result)) throw new Error("new Roll() must be called with a list of Results.")});
+		this.results = results;
+		return this.normalize();
 	}
 
-	static fromPairs(pairs) {
-		// Returns a Roll with its results set to pairs.
-		const ret = new Roll();
-		ret.results = pairs;
-		return ret;
+	static of(...vals) {
+		// Returns a roll with N values, each with an equal chance.
+		return new Roll(vals.map(x=>Result([x], 1/vals.length)));
 	}
 
-	static fromFaces(faces) {
-		// Returns a Roll whose results are each of the faces values,
+	static fromFaces(...faces) {
+		// Returns a Roll whose results are each of the `faces`` values,
 		// each with an equal chance of occurring.
-		return Roll.fromPairs(faces.map(x=>[x, 1/faces.length]))
+		return new Roll(faces.map(x=>Result([x], 1/faces.length)));
 	}
 
 	static d(sides) {
@@ -111,56 +137,31 @@ export class Roll {
 		return Roll.and(this, ...rolls)
 	}
 
-	normalize() {
+	normalizeChances() {
 		// Rescales all the chances so they sum to 1.
-		const total = this.results.reduce((sum, pair)=>sum + pair[1], 0);
-		this.results.forEach(pair=>pair[1] /= total);
+		const total = this.results.reduce((sum, result)=>sum + result.chance, 0);
+		this.results.forEach(result=>result.chance /= total);
 		return this;
 	}
 
-	normalizeFaces() {
-		// Ensures that each value is a flat array of values.
-		// e.g. `1` becomes `[1]`,
-		// `[[1, 2], [3, 4]]` becomes `[1, 2, 3, 4]`
-		// etc.
-		return this.map(normalizeFaces);
+	normalize() {
+		// Flattens each result list.
+		// If any value in the result is a Roll, the result is spread into multiple results,
+		// with the outer chance distributed to the inner results.
+		this.results = this.results.flatMap(result=>result.normalize());
+		return this;
 	}
 
 	map(fn) {
-		// Returns a new Roll where each result's value
-		// is replaced with fn(value), and chance is retained.
-		// (Functor map.)
-		return Roll.fromPairs(this.results.map(([val, chance])=>[fn(val), chance]));
-	}
-
-	join() {
-		// Returns a new Roll where, if any result values are Rolls themselves,
-		// they're replaced with the results of the inner roll,
-		// with the outer chance distributed to the inner results.
-		// (Forgiving monadic join, where non-Roll results are left unchanged.)
-		return Roll.fromPairs(this.results.flatMap(([roll, chance])=>{
-			if(!(roll instanceof Roll)) {
-				return [[roll, chance]];
-			}
-			return roll.results.map(([val, innerChance]) => [val, chance*innerChance])
-		}));
-	}
-
-	flatMap(fn) {
-		// Just .map(fn).join().
-		// In other words, maps fn over the values, but if it returns
-		// a Roll, expands that Roll's results into the outer Roll.
-		return this.map(fn).join();
+		// Maps the fn over each result's faces,
+		// leaving chances untouched, then normalizes.
+		return new Roll(this.results.map(result=>new Result(fn(result.faces), result.chance)));
 	}
 
 	mapFaces(fn) {
 		// Map over the faces of each result individually,
 		// when you don't care about the result as a whole.
-		const deepMap = (sub, fn)=> {
-			if(Array.isArray(sub)) return sub.map(x=>deepMap(x, fn));
-			return fn(sub);
-		}
-		return this.map(faces=>deepMap(faces, fn));
+		return this.map(faces=>faces.map(fn));
 	}
 
 	bucket(key=String, join=x=>x[0]) {
@@ -171,10 +172,10 @@ export class Roll {
 		// from the grouped values.
 		// Chances are automatically combined appropriately.
 		const buckets = new Map();
-		for(const pair of this.results) {
-			const keyVal = key(pair[0]);
+		for(const result of this.results) {
+			const keyVal = key(result.faces);
 			if(!buckets.has(keyVal)) buckets.set(keyVal, []);
-			buckets.get(keyVal).push(pair);
+			buckets.get(keyVal).push(result);
 		}
 		const newResults = [];
 		for(const vals of buckets.values()) {
@@ -184,42 +185,34 @@ export class Roll {
 				totalChance += chance;
 				justVals.push(val);
 			}
-			const newPair = [join(justVals), totalChance];
-			newResults.push(newPair);
+			const newResult = new Result(join(justVals), totalChance);
+			newResults.push(newResult);
 		}
-		return Roll.fromPairs(newResults);
+		return new Roll(newResults);
 	}
 
-	sum() {
+	sum(fn = x=>x) {
 		// Assuming the values are numbers or arrays of numbers,
 		// buckets according to their sum,
 		// returning a new Roll composed of the sums.
-		return this.bucket(sumFaces, x=>sumFaces(x[0])).sort();
+		return this.map(faces=>sum(faces, fn)).bucket().sort();
 	}
 
-	count(val) {
-		// Counts the number of times val shows up in each result
+	count(pred) {
+		// Counts the number of times pred shows up among the faces in each result
 		// and buckets accordingly.
-		return this.map(faces=>countFaces(faces, val)).bucket().sort();
+		if(!(pred instanceof Function)) pred = x=>x==pred;
+		return this.mapFaces(x=>pred(x) ? 1 : 0).sum();
 	}
 
 	replace(pred, repl) {
-		return this.flatMap(faces=>replaceFaces(faces, pred, repl)).bucket().sort();
+		if(!(pred instanceof Function)) pred = x=>x==pred;
+		if(!(repl instanceof Function)) repl = ()=>repl;
+		return this.mapFaces(f=>pred(f) ? repl(f) : f).normalize().bucket().sort();
 	}
 
-	sort(key=x=>x, sorter=undefined) {
-		// Sorts the result rows.
-		if(sorter) {
-			this.results.sort(sorter);
-		} else {
-			this.results.sort((a,b)=> {
-				const keyA = key(a[0]);
-				const keyB = key(b[0]);
-				if(keyA < keyB) return -1;
-				if(keyA == keyB) return 0;
-				return 1;
-			});
-		}
+	sort(key = x=>x, cmp = (a,b)=> a<b ? 1 : a==b ? 0 : -1) {
+		this.results.sort((a,b)=> cmp(key(a.faces), key(b.faces)));
 		return this;
 	}
 
@@ -257,12 +250,12 @@ export class Roll {
 		// To reroll 1s and 2s on a 2d6, once only:
 		// Roll.nd(2, 6).reroll({map(faces) { return {done:flat(faces.map(x=>x<=2?Roll.d6:x))}}});
 
-		let pairs = this.results;
+		let results = this.results;
 		if(summarize) {
-			pairs = pairs.map(([val, chance])=>[summarize(val, undefined, 1), chance]);
+			results = results.map(result=>new Result([summarize(result.faces, undefined, 1)], chance));
 		}
 		if(key !== false) {
-			pairs = bucketList(pairs, key, join);
+			results = bucketList(results, key, join);
 		}
 		let finishedPairs = [];
 		let unfinishedPairs = [];
@@ -647,4 +640,8 @@ function normalizePred(pred) {
 	// returns a function that just checks against the value.
 	if(typeof pred == "function") return pred;
 	return x=>x==pred;
+}
+
+function sum(arr, mapper = x=>x) {
+	return arr.reduce((total, item)=>total + mapper(item), 0);
 }
