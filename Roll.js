@@ -207,6 +207,16 @@ export class Roll {
 		return this.flatMap(faces=>replaceFaces(faces, pred, repl)).bucket().sort();
 	}
 
+	filterIn(pred) {
+		this.results = this.results.filter(res=>pred(res[0]));
+		return this.normalize();
+	}
+
+	filterOut(pred) {
+		this.results = this.results.filter(res=>!pred(res[0]));
+		return this.normalize();
+	}
+
 	sort(key=x=>x, sorter=undefined) {
 		// Sorts the result rows.
 		if(sorter) {
